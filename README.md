@@ -1,0 +1,1 @@
+# Golang library containing QOL methods 100% compatible with "net/http" 
