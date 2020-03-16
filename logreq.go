@@ -18,15 +18,17 @@ func MiddlewareFuncLogRequest(log func(req, resp []byte), response bool) func(ht
 			}
 
 			rec := httptest.NewRecorder()
-			next.ServeHTTP(rec, r)
-			resp, _ := httputil.DumpResponse(rec.Result(), true)
-			log(req, resp)
+			defer func() {
+				resp, _ := httputil.DumpResponse(rec.Result(), true)
+				log(req, resp)
 
-			w.WriteHeader(rec.Code)
-			for k, v := range rec.Header() {
-				w.Header()[k] = v
-			}
-			rec.Body.WriteTo(w)
+				w.WriteHeader(rec.Code)
+				for k, v := range rec.Header() {
+					w.Header()[k] = v
+				}
+				rec.Body.WriteTo(w)
+			}()
+			next.ServeHTTP(rec, r)
 		})
 	}
 }

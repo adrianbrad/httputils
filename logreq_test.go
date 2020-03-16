@@ -34,3 +34,14 @@ func TestMiddlewareFuncLogRequestWebsocket(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 101, resp.StatusCode)
 }
+
+func TestMiddlewareLogHTTPRequest(t *testing.T) {
+	loggerMiddleware := MiddlewareFuncLogRequest(func(req, resp []byte) {
+		t.Logf("request: %s, response: %s", string(req), string(resp))
+	}, true)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("response body"))
+	})
+	s := httptest.NewServer(loggerMiddleware(handler))
+	http.Get(s.URL)
+}
