@@ -39,6 +39,9 @@ func TestServer(t *testing.T) {
 	}()
 
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
+
 		fmt.Println("send request func: sending")
 		_, err = http.DefaultClient.Get("http://:" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port))
 		require.NoError(t, err)
@@ -46,6 +49,9 @@ func TestServer(t *testing.T) {
 	}()
 
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
+
 		stop := make(chan os.Signal)
 		signal.Notify(stop, syscall.SIGTERM)
 		signal.Notify(stop, syscall.SIGINT)

@@ -31,15 +31,6 @@ func NewGracefulShutdownServer(baseContext context.Context, server *http.Server,
 		return s.ctx
 	}
 
-	middlewareWaitGroup := func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			s.wg.Add(1)
-			next.ServeHTTP(w, r)
-			s.wg.Done()
-		})
-	}
-	server.Handler = middlewareWaitGroup(server.Handler)
-
 	return s
 }
 
@@ -53,12 +44,14 @@ func (s *GracefulShutdownServer) ListenAndServe() error {
 
 func (s *GracefulShutdownServer) Close() error {
 	s.cancelAllRequests()
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()
+
 	err := s.server.Shutdown(ctx)
 	if err != nil {
 		return err
 	}
-	s.wg.Wait()
+
 	return nil
 }
